@@ -11,12 +11,14 @@
 # define MOD24(v) v & UINT_MAX
 #endif
 
+#include <vector>
+
 typedef enum {
   A, B, C, D, BP, SP
 } Reg;
 
 typedef enum {
-  REG, IMM
+  REG, IMM, LAB
 } ValueType;
 
 typedef enum {
@@ -37,24 +39,22 @@ typedef struct {
   };
 } Value;
 
-typedef struct Inst_ {
+typedef struct {
   Op op;
   Value dst;
   Value src;
   Value jmp;
   int pc;
   int lineno;
-  struct Inst_* next;
 } Inst;
 
-typedef struct Data_ {
+typedef struct {
   int v;
-  struct Data_* next;
 } Data;
 
 typedef struct {
-  Inst* text;
-  Data* data;
+  std::vector<Inst> text;
+  std::vector<Data> data;
 } Module;
 
 Module* load_eir(FILE* fp);
@@ -63,8 +63,7 @@ Module* load_eir_from_file(const char* filename);
 
 void split_basic_block_by_mem();
 
-void dump_inst(Inst* inst);
-void dump_inst_fp(Inst* inst, FILE* fp);
+bool isident(const char c);
 
 #ifdef __GNUC__
 #if __has_attribute(fallthrough)

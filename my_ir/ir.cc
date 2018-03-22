@@ -406,10 +406,8 @@ void read_text(vector<Inst>* inst, Reader* r) {
     if (r->is_end())
       break;
     int prev_pos = r->get_pos();
-    const string& word = r->token_word();
-    Op o = get_op(word);
-    assert(o == OP_UNSET);
-    if (!is_label(word) || !r->accept(":")) {
+    const string& next_label = r->token_word();
+    if (!r->accept(":")) {
       r->set_pos(prev_pos);
       break;
     }

@@ -418,20 +418,19 @@ void read_text(vector<Inst>* inst, LabelRefMap* label_ref, Reader* r) {
   }
 }
 
-vector<string> read_typevals(Reader* r) {
+vector<int> read_typevals(Reader* r) {
   assert(r != nullptr);
-
-  vector<string> result;
-  bool end = false;
-  while(!r->is_end() && !end) {
+  vector<int> result;
+  while(!r->is_end()) {
     if (r->accept(".string")) {
       const string& val = r->literal();
-      result.push_back(val);
+      for (int i = 0; i < val.size(); i++)
+        result.push_back(val[i]);
     } else if (r->accept(".long")) {
       Value val = read_value(r);
-      result.push_back(std::to_string(val.imm));
+      result.push_back(val.imm);
     } else {
-      end = true;
+      break;
     }
     r->skip_spaces();
   }
@@ -451,7 +450,7 @@ void read_data(vector<Data>* data, LabelRefMap* label_ref, Reader* r) {
     } else {
       r->set_pos(prev_pos);
     }
-    const vector<string>& vals = read_typevals(r);
+    const vector<int>& vals = read_typevals(r);
     if (vals.size() == 0)
       break;
     for (int i = 0; i < vals.size(); i++)

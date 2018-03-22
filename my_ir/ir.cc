@@ -44,6 +44,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <utility>
 
 using std::cout;
@@ -52,7 +53,7 @@ using std::pair;
 using std::string;
 using std::vector;
 
-typedef pair<string, vector<string> > DataPair;
+typedef std::unordered_map<string, int> LabelRefMap;
 
 class Reader {
  public:
@@ -397,21 +398,23 @@ void get_exprs(vector<Inst>* inst_list, Reader* r) {
   get_exprs(inst_list, r);
 }
 
-void read_text(vector<Inst>* inst, Reader* r) {
+void read_text(vector<Inst>* inst, LabelRefMap* label_ref, Reader* r) {
+  assert(inst != nullptr);
   assert(r != nullptr);
-  string label;
+  assert(r != nullptr);
   while (true) {
     // Read as many expressions as possible.
     get_exprs(inst, r);
     if (r->is_end())
       break;
     int prev_pos = r->get_pos();
-    const string& next_label = r->token_word();
+    const string& label = r->token_word();
     if (!r->accept(":")) {
       r->set_pos(prev_pos);
       break;
     }
-    label = next_label;
+    assert(label_ref->find(label) == label_ref->end());
+    label_ref->insert(make_pair(label, inst->size() + 1));
   }
 }
 
@@ -435,30 +438,33 @@ vector<string> read_typevals(Reader* r) {
   return result;
 }
 
-vector<DataPair> read_data(Reader* r) {
+void read_data(vector<Data>* data, LabelRefMap* label_ref, Reader* r) {
+  assert(data != nullptr);
+  assert(label_ref != nullptr);
   assert(r != nullptr);
-  vector<DataPair> result;
-  string label;
   while (!r->is_end()) {
     int prev_pos = r->get_pos();
-    const string& next_label = r->token_word();
+    const string& label = r->token_word();
     if (r->accept(":")) {
-      label = next_label;
+      assert(label_ref->find(label) == label_ref->end());
+      label_ref->insert(make_pair(label, data->size() + 1));
     } else {
       r->set_pos(prev_pos);
     }
     const vector<string>& vals = read_typevals(r);
     if (vals.size() == 0)
       break;
-    result.push_back(make_pair(label, vals));
+    for (int i = 0; i < vals.size(); i++)
+      data->push_back((Data) { 4 });
   }
-  return result;
 }
 
 Module* load_eir_impl(Reader* r) {
   assert(r != nullptr);
   vector<Inst> txt;
   vector<Data> data;
+  LabelRefMap txt_label_ref;
+  LabelRefMap data_label_ref;
 
   while (!r->is_end()) {
     if (r->accept(".data")) {
@@ -470,10 +476,10 @@ Module* load_eir_impl(Reader* r) {
       } else {
         r->set_pos(prev_pos);
       }
-      read_data(r);
+      read_data(&data, &data_label_ref, r);
     } else {
       r->accept(".text");
-      read_text(&txt, r);
+      read_text(&txt, &txt_label_ref, r);
     }
   }
   assert(r->is_end());

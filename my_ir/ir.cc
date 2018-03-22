@@ -55,6 +55,18 @@ using std::vector;
 
 typedef std::unordered_map<string, int> LabelRefMap;
 
+typedef enum {
+  VAL, REFLAB
+} TempDataType;
+
+typedef struct {
+  TempDataType type;
+  union {
+    void* label;
+    int val;
+  };
+} TempData;
+
 class Reader {
  public:
   Reader(char* mem, int size, int pos)
@@ -418,26 +430,37 @@ void read_text(vector<Inst>* inst, LabelRefMap* label_ref, Reader* r) {
   }
 }
 
-vector<int> read_typevals(Reader* r) {
+int read_typevals(vector<TempData>* data, Reader* r) {
+  assert(data != nullptr);
   assert(r != nullptr);
-  vector<int> result;
+  int update = 0;
   while(!r->is_end()) {
     if (r->accept(".string")) {
-      const string& val = r->literal();
-      for (int i = 0; i < val.size(); i++)
-        result.push_back(val[i]);
+      const string& str = r->literal();
+      for (int i = 0; i < str.size(); i++)
+        data->push_back((TempData) {VAL, .val=str[i]});
     } else if (r->accept(".long")) {
       Value val = read_value(r);
-      result.push_back(val.imm);
+      switch (val.type) {
+      case IMM:
+        data->push_back((TempData) {VAL, .val=val.imm});
+        break;
+      case LAB:
+        data->push_back((TempData) {REFLAB, val.tmp});
+        break;
+      default:
+        assert(false);
+      }
     } else {
       break;
     }
+    update++;
     r->skip_spaces();
   }
-  return result;
+  return update;
 }
 
-void read_data(vector<Data>* data, LabelRefMap* label_ref, Reader* r) {
+void read_data(vector<TempData>* data, LabelRefMap* label_ref, Reader* r) {
   assert(data != nullptr);
   assert(label_ref != nullptr);
   assert(r != nullptr);
@@ -450,18 +473,15 @@ void read_data(vector<Data>* data, LabelRefMap* label_ref, Reader* r) {
     } else {
       r->set_pos(prev_pos);
     }
-    const vector<int>& vals = read_typevals(r);
-    if (vals.size() == 0)
+    if (read_typevals(data, r) == 0)
       break;
-    for (int i = 0; i < vals.size(); i++)
-      data->push_back((Data) { 4 });
   }
 }
 
 Module* load_eir_impl(Reader* r) {
   assert(r != nullptr);
   vector<Inst> txt;
-  vector<Data> data;
+  vector<TempData> data;
   LabelRefMap txt_label_ref;
   LabelRefMap data_label_ref;
 
@@ -481,10 +501,11 @@ Module* load_eir_impl(Reader* r) {
       read_text(&txt, &txt_label_ref, r);
     }
   }
+
   assert(r->is_end());
   Module* m = new Module();
   m->text = txt;
-  m->data = data;
+  //m->data = data;
   return m;
 }
 

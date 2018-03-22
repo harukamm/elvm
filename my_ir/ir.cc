@@ -148,17 +148,6 @@ class Reader {
     }
     assert(false);
   }
-/*
-  // Reads consecutive identifier characters or '.' ignoring spaces before and
-  // behind it.
-  string token_string() {
-    skip_spaces();
-    string result;
-    while (!is_end() && (isident(peek()) || peek() == '.'))
-      result += getc();
-    skip_spaces();
-    return result;
-  }*/
 
   // Skip consecutive non-space characters ignoring spaces before it.
   void expect(const string& expected_word) {
@@ -216,16 +205,6 @@ int string_to_int(const string& s) {
 
 bool isident(const char c) {
   return isalnum(c) || c == '_' || c == '.';
-}
-
-bool is_label(const string& s) {
-  if (s.size() == 0 || isdigit(s[0]))
-    return false;
-  for(int i = 0; i < s.size(); i++) {
-    if (!isident(s[i]))
-      return false;
-  }
-  return true;
 }
 
 bool is_reg(const string& s) {

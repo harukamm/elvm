@@ -52,7 +52,7 @@ using std::pair;
 using std::string;
 using std::vector;
 
-typedef pair<string, string> data_pair;
+typedef pair<string, vector<string> > DataPair;
 
 class Reader {
  public:
@@ -410,41 +410,46 @@ void read_text(vector<Inst>* inst, Reader* r) {
       r->set_pos(prev_pos);
       break;
     }
-    label = word;
+    label = next_label;
   }
 }
 
-string read_typeval(Reader* r) {
+vector<string> read_typevals(Reader* r) {
   assert(r != nullptr);
 
-  if (r->accept(".string")) {
-    const string& val = r->literal();
+  vector<string> result;
+  bool end = false;
+  while(!r->is_end() && !end) {
+    if (r->accept(".string")) {
+      const string& val = r->literal();
+      result.push_back(val);
+    } else if (r->accept(".long")) {
+      Value val = read_value(r);
+      result.push_back(std::to_string(val.imm));
+    } else {
+      end = true;
+    }
     r->skip_spaces();
-    return val;
-  } else if (r->accept(".long")) {
-    Value val = read_value(r);
-    assert(val.type == IMM);
-    return std::to_string(val.imm);
-  } else {
-    assert(false);
   }
+  return result;
 }
 
-vector<data_pair> read_data(Reader* r) {
+vector<DataPair> read_data(Reader* r) {
   assert(r != nullptr);
-  vector<data_pair> result;
+  vector<DataPair> result;
+  string label;
   while (!r->is_end()) {
     int prev_pos = r->get_pos();
-    const string& word = r->token_word();
-    Op o = get_op(word);
-    if (o != OP_UNSET || !is_label(word)) {
+    const string& next_label = r->token_word();
+    if (r->accept(":")) {
+      label = next_label;
+    } else {
       r->set_pos(prev_pos);
-      break;
     }
-    cout << word << "(" << word.size() << ")\n";
-    r->expect(":");
-    const string& val = read_typeval(r);
-    result.push_back(make_pair(word, val));
+    const vector<string>& vals = read_typevals(r);
+    if (vals.size() == 0)
+      break;
+    result.push_back(make_pair(label, vals));
   }
   return result;
 }

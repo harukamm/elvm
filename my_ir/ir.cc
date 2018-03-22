@@ -459,18 +459,21 @@ Module* load_eir_impl(Reader* r) {
   vector<Inst> txt;
   vector<Data> data;
 
-  if (r->accept(".data")) {
-    read_data(r);
-    r->accept(".text");
-    read_text(&txt, r);
-  } else {
-    r->accept(".text");
-    read_text(&txt, r);
-    r->accept(".data");
-    read_data(r);
-  }
-  if(!r->is_end()) {
-    r->dump(r->get_pos());
+  while (!r->is_end()) {
+    if (r->accept(".data")) {
+      int prev_pos = r->get_pos();
+      const string& number = r->token_word();
+      int num = 0;
+      if (number.size() != 0 && isdigit(number[0])) {
+        int num = string_to_int(number);
+      } else {
+        r->set_pos(prev_pos);
+      }
+      read_data(r);
+    } else {
+      r->accept(".text");
+      read_text(&txt, r);
+    }
   }
   assert(r->is_end());
   Module* m = new Module();

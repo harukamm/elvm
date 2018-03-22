@@ -613,24 +613,12 @@ void test_file(const char* filename) {
   cout << " - - - - - - - - - -" << endl;
 }
 
-int main() {/*
-  test_file("../test/00exit.eir");
-  test_file("../test/01putc.eir");
-  test_file("../test/02mov.eir");
-  test_file("../test/03mov_reg.eir");
-  test_file("../test/04getc.eir");
-  test_file("../test/05regjmp.eir");
-  test_file("../test/06mem.eir");
-  test_file("../test/07mem.eir");
-  test_file("../test/08data.eir");
-  test_file("../test/add_self.eir");
-  test_file("../test/basic.eir");
-  test_file("../test/bug_cmp.eir");
-  test_file("../test/echo.eir");
-  test_file("../test/isprint.eir");
-  test_file("../test/neg.eir");
-  test_file("../test/sub.eir");
-  test_file("../test/sub_bug.eir");*/
+int main(int argc, char** argv) {
+  if (argc == 2) {
+    char* filename = argv[1];
+    test_file(filename);
+    return 0;
+  }
 
   test_file("../out/00exit.eir");
   test_file("../out/01putc.eir");

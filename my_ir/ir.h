@@ -35,7 +35,7 @@ typedef struct {
   union {
     Reg reg;
     int imm;
-    void* tmp;
+    std::string* tmp;
   };
 } Value;
 

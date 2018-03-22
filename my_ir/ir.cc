@@ -62,10 +62,16 @@ typedef enum {
 typedef struct {
   TempDataType type;
   union {
-    void* label;
+    string* label;
     int val;
   };
 } TempData;
+
+void dereferece_labels_text(vector<Inst>* inst,
+  const LabelRefMap& txt_label_ref, const LabelRefMap& data_label_ref);
+
+void dereferece_labels_data(vector<Data>* data,
+  const vector<TempData>& tempData, const LabelRefMap& data_label_ref);
 
 class Reader {
  public:
@@ -319,7 +325,7 @@ Value read_value(Reader* r) {
     result.reg = string_to_reg(word);
   } else {
     result.type = LAB;
-//    result.tmp = word;
+    result.tmp = new string(word);
   }
   return result;
 }
@@ -503,10 +509,76 @@ Module* load_eir_impl(Reader* r) {
   }
 
   assert(r->is_end());
+
+  vector<Data> d;
+  dereferece_labels_data(&d, data, data_label_ref);
+  dereferece_labels_text(&txt, txt_label_ref, data_label_ref);
+
   Module* m = new Module();
   m->text = txt;
-  //m->data = data;
+  m->data = d;
   return m;
+}
+
+void dereferece_labels_text(vector<Inst>* inst,
+    const LabelRefMap& txt_label_ref, const LabelRefMap& data_label_ref) {
+  assert(inst != nullptr);
+  for(int i = 0; i < inst->size(); i++) {
+    Inst& in = (*inst)[i];
+    switch (in.op) {
+    case JMP:
+    case JEQ:
+    case JNE:
+    case JLT:
+    case JGT:
+    case JLE:
+    case JGE:
+      // Refer to a label in text.
+      if (in.jmp.type == LAB) {
+        string label = *in.jmp.tmp;
+        auto iter = txt_label_ref.find(label);
+        if (iter == txt_label_ref.end()) {
+          cout << "fails!: " << label << " " << in.jmp.tmp << endl;
+        }
+        assert(iter != txt_label_ref.end());
+        in.jmp.type = IMM;
+        in.jmp.imm = iter->second;
+      }
+      break;
+    case MOV:
+      // Refer to a label in data.
+      if (in.dst.type == LAB) {
+        string label = *in.dst.tmp;
+        auto iter = data_label_ref.find(label);
+        assert(iter != data_label_ref.end());
+        in.src.type = IMM;
+        in.src.imm = iter->second;
+      }
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+void dereferece_labels_data(vector<Data>* data,
+    const vector<TempData>& tempData, const LabelRefMap& data_label_ref) {
+  assert(data != nullptr);
+  data->resize(tempData.size());
+  for (int i = 0; i < tempData.size(); i++) {
+    const TempData& td = tempData[i];
+    int v;
+    if (td.type != REFLAB) {
+      v = td.val;
+    } else {
+      // Refer to a label in data.
+      string label = *td.label;
+      auto iter = data_label_ref.find(label);
+      assert(iter != data_label_ref.end());
+      v = iter->second;
+    }
+    (*data)[i].v = v;
+  }
 }
 
 string string_reg(Reg reg) {

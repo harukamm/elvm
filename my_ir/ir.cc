@@ -322,7 +322,10 @@ void get_exprs(vector<Inst>* inst_list, Reader* r) {
 
   int prev_pos = r->get_pos();
   const string& word = r->token_word();
-  Op o = get_op(word);
+  Op o = OP_UNSET;
+  // Get a operation code for 'word' only if it's not a declaration label.
+  if (!r->accept(":"))
+    o = get_op(word);
   Inst inst;
   inst.op = o;
   Value v1, v2, v3;

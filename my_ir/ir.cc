@@ -144,7 +144,7 @@ class Reader {
       char c = getc();
       if (c == '\"' && !escape)
         return result;
-      escape = c == '\\';
+      escape = !escape && c == '\\';
     }
     assert(false);
   }

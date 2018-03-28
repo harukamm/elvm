@@ -41,6 +41,7 @@
 
 #include <assert.h>
 #include <fstream>
+#include <map>
 #include <unordered_map>
 #include <utility>
 
@@ -59,6 +60,13 @@ typedef struct {
     int val;
   };
 } TempData;
+
+typedef std::map<int, vector<TempData> > TempDataByOrd;
+
+typedef std::map<int, LabelRefMap> LabelRefMapByOrd;
+
+void allocate_by_ord(vector<TempData>* data, LabelRefMap* label_ref,
+  const TempDataByOrd& data_by_ord, const LabelRefMapByOrd& ref_by_ord);
 
 void dereferece_labels_text(vector<Inst>* inst,
   const LabelRefMap& txt_label_ref, const LabelRefMap& data_label_ref);
@@ -508,9 +516,9 @@ void read_data(vector<TempData>* data, LabelRefMap* label_ref, Reader* r) {
 Module* load_eir_impl(Reader* r) {
   assert(r != nullptr);
   vector<Inst> txt;
-  vector<TempData> data;
+  TempDataByOrd data_by_ord;
   LabelRefMap txt_label_ref;
-  LabelRefMap data_label_ref;
+  LabelRefMapByOrd data_label_ref_by_ord;
 
   while (!r->is_end()) {
     if (r->accept(".data")) {
@@ -518,11 +526,13 @@ Module* load_eir_impl(Reader* r) {
       const string& number = r->token_word();
       int num = 0;
       if (number.size() != 0 && isdigit(number[0])) {
-        int num = string_to_int(number);
+        num = string_to_int(number);
       } else {
         r->set_pos(prev_pos);
       }
-      read_data(&data, &data_label_ref, r);
+      vector<TempData>* data_n = &(data_by_ord[num]);
+      LabelRefMap* label_ref = &(data_label_ref_by_ord[num]);
+      read_data(data_n, label_ref, r);
     } else {
       r->accept(".text");
       read_text(&txt, &txt_label_ref, r);
@@ -535,17 +545,51 @@ Module* load_eir_impl(Reader* r) {
   if (txt_label_ref.find("main") != txt_label_ref.end())
     entry = txt_label_ref.find("main")->second;
 
-  data_label_ref.insert(std::make_pair("_edata", data.size()));
+  vector<TempData> tmp_data;
+  LabelRefMap data_label_ref;
+  allocate_by_ord(&tmp_data, &data_label_ref, data_by_ord, data_label_ref_by_ord);
 
-  vector<Data> d;
-  dereferece_labels_data(&d, data, data_label_ref);
+  data_label_ref.insert(std::make_pair("_edata", tmp_data.size()));
+
+  vector<Data> data;
+  dereferece_labels_data(&data, tmp_data, data_label_ref);
   dereferece_labels_text(&txt, txt_label_ref, data_label_ref);
 
   Module* m = new Module();
   m->entry = entry;
   m->text = txt;
-  m->data = d;
+  m->data = data;
   return m;
+}
+
+void allocate_by_ord(vector<TempData>* data, LabelRefMap* label_ref,
+    const TempDataByOrd& data_by_ord, const LabelRefMapByOrd& ref_by_ord) {
+  assert(data != nullptr);
+  assert(label_ref != nullptr);
+
+  int all_dsize = 0;
+  for (auto &p : data_by_ord)
+    all_dsize += p.second.size();
+  data->resize(all_dsize);
+
+  int dsize = 0; // Current data size
+  for (auto &p : data_by_ord) {
+    int ord = p.first;
+    const vector<TempData>& data_n = p.second;
+    for (int i = 0; i < data_n.size(); i++) {
+      (*data)[dsize + i] = data_n[i];
+    }
+    auto ref_iter = ref_by_ord.find(ord);
+    if (ref_iter != ref_by_ord.end()) {
+      const LabelRefMap& ref = ref_iter->second;
+      for (auto &r : ref) {
+        const string& name = r.first;
+        int offset = r.second;
+        label_ref->insert(make_pair(name, dsize + offset));
+      }
+    }
+    dsize += data_n.size();
+  }
 }
 
 void dereferece_labels_text(vector<Inst>* inst,

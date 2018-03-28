@@ -154,9 +154,35 @@ class Reader {
     bool escape = false;
     while (!is_end()) {
       char c = getc();
-      if (c == '\"' && !escape)
-        return result;
-      escape = !escape && c == '\\';
+      if (escape) {
+        escape = false;
+        if (c == 'n') {
+          result += '\n';
+        } else if (c == 't') {
+          result += '\t';
+        } else if (c == '\\') {
+          result += '\\';
+        } else if (c == '\"') {
+          result += '\"';
+        } else if (c == 'x') {
+          assert(!is_end());
+          result += getc();
+          assert(!is_end());
+          result += getc();
+        } else {
+          cout << c << endl;
+          assert(false);
+        }
+      } else {
+        if (c == '\"') {
+          result += '\0';
+          return result;
+        } else if (c == '\\') {
+          escape = true;
+        } else {
+          result += c;
+        }
+      }
     }
     assert(false);
   }

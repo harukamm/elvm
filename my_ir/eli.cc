@@ -133,7 +133,7 @@ void run(const Module& m) {
     case GETC:
       assert(inst.src.type == REG);
       cin.get(c);
-      regs[inst.src.reg] = c == EOF ? 0 : c;
+      regs[inst.src.reg] = cin.eof() ? 0 : c;
       regs[inst.src.reg] += MEMSZ;
       regs[inst.src.reg] %= MEMSZ;
       break;

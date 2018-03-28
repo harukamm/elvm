@@ -169,6 +169,8 @@ class Reader {
           result += getc();
           assert(!is_end());
           result += getc();
+        } else if (c == 'b') {
+          result += '\b';
         } else {
           cout << c << endl;
           assert(false);

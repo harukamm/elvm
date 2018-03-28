@@ -76,7 +76,7 @@ void run(const Module& m) {
       assert(false);
 
     Inst inst = text[pc];
-    cout << string_op(inst.op) << endl;
+    // cout << string_op(inst.op) << endl;
     switch (inst.op) {
     case MOV:
       assert(inst.dst.type == REG);
@@ -123,12 +123,13 @@ void run(const Module& m) {
     case JGE:
       if (cmp(inst)) {
         npc = jmp(inst);
-        cout << "jump to: " << npc << endl;
+        // cout << "jump to: " << npc << endl;
       }
       break;
     case PUTC:
       c = value(inst.src);
-      cout << "put: " << c << endl;
+      // cout << "put: " << c << endl;
+      cout << c;
       break;
     case GETC:
       assert(inst.src.type == REG);

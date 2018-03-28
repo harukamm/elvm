@@ -680,6 +680,9 @@ void dump_inst(const vector<Inst>& inst) {
 }
 
 void dump_data(const vector<Data>& data) {
+  for (int i = 0; i < data.size(); i++) {
+    cout << "[" << i << "] " << data[i].v << endl;
+  }
 }
 
 void dump_module(Module* m) {

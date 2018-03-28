@@ -423,7 +423,7 @@ void read_text(vector<Inst>* inst, LabelRefMap* label_ref, Reader* r) {
       break;
     }
     assert(label_ref->find(label) == label_ref->end());
-    label_ref->insert(make_pair(label, inst->size() + 1));
+    label_ref->insert(make_pair(label, inst->size()));
   }
 }
 
@@ -466,7 +466,7 @@ void read_data(vector<TempData>* data, LabelRefMap* label_ref, Reader* r) {
     const string& label = r->token_word();
     if (r->accept(":")) {
       assert(label_ref->find(label) == label_ref->end());
-      label_ref->insert(make_pair(label, data->size() + 1));
+      label_ref->insert(make_pair(label, data->size()));
     } else {
       r->set_pos(prev_pos);
     }

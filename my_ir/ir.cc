@@ -333,8 +333,6 @@ Value read_value(Reader* r) {
 void get_exprs(vector<Inst>* inst_list, Reader* r) {
   assert(inst_list != nullptr);
   assert(r != nullptr);
-  if (r->is_end())
-    return;
   while (r->accept("#") || r->accept(".loc") || r->accept(".file")
       || r->accept(".text"))
     r->skip_until_ret();

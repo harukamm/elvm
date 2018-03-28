@@ -544,13 +544,21 @@ void dereferece_labels_text(vector<Inst>* inst,
       }
       break;
     case MOV:
-      // Refer to a label in data.
-      if (in.dst.type == LAB) {
-        string label = *in.dst.tmp;
-        auto iter = data_label_ref.find(label);
-        assert(iter != data_label_ref.end());
+      // Refer to a label in text/data.
+      if (in.src.type == LAB) {
+        string label = *in.src.tmp;
+        auto in_dt = data_label_ref.find(label);
+        auto in_txt = txt_label_ref.find(label);
+        int addr;
+        if (in_dt != data_label_ref.end()) {
+          addr = in_dt->second;
+        } else if (in_txt != txt_label_ref.end()) {
+          addr = in_txt->second;
+        } else {
+          assert(false);
+        }
         in.src.type = IMM;
-        in.src.imm = iter->second;
+        in.src.imm = addr;
       }
       break;
     default:

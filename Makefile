@@ -10,6 +10,7 @@ ARCH := x86
 endif
 
 ELI := out/eli
+MY_ELI := out/my_eli
 ELC := out/elc
 8CC := out/8cc
 8CC_SRCS := \
@@ -29,7 +30,7 @@ ELC := out/elc
 	8cc/set.c \
 	8cc/vector.c
 
-BINS := $(8CC) $(ELI) $(ELC) out/dump_ir out/befunge out/bfopt
+BINS := $(8CC) $(ELI) $(MY_ELI) $(ELC) out/dump_ir out/befunge out/bfopt
 LIB_IR_SRCS := ir/ir.c ir/table.c
 LIB_IR := $(LIB_IR_SRCS:ir/%.c=out/%.o)
 
@@ -136,6 +137,9 @@ out/dump_ir: $(LIB_IR) out/dump_ir.o
 $(ELI): $(LIB_IR) out/eli.o
 	$(CC) $(CFLAGS) $^ -o $@
 
+$(MY_ELI): my_ir/dump_ir.cc my_ir/eli.cc my_ir/ir.cc
+	$(CXX) -g -I. -std=c++11 my_ir/dump_ir.cc my_ir/eli.cc my_ir/ir.cc -o $@
+
 $(ELC): $(LIB_IR) $(ELC_SRCS:target/%.c=out/%.o)
 	$(CC) $(CFLAGS) $^ -o $@
 
@@ -230,6 +234,21 @@ OUT.c.exe.out := $(OUT.c.exe:%=%.out)
 OUT.c.eir.out := $(OUT.c.exe.out:%.c.exe.out=%.c.eir.out)
 EXPECT := c.exe.out
 ACTUAL := c.eir.out
+include diff.mk
+
+include clear_vars.mk
+SRCS := $(OUT.eir)
+EXT := my_out
+DEPS := $(TEST_INS) runtest.sh
+CMD = ./runtest.sh $1 $(MY_ELI) $2
+OUT.eir.my_out := $(SRCS:%=%.$(EXT))
+include build.mk
+
+include clear_vars.mk
+OUT.c.exe.out := $(OUT.c.exe:%=%.out)
+OUT.c.eir.my_out := $(OUT.c.exe.out:%.c.exe.out=%.c.eir.my_out)
+EXPECT := c.exe.out
+ACTUAL := c.eir.my_out
 include diff.mk
 
 build: $(TEST_RESULTS)

@@ -603,8 +603,9 @@ Module* load_eir_from_file(const char* filename) {
 
 void test_file(const char* filename) {
   // cout << " - - - test - " << filename << endl;
-  load_eir_from_file(filename);
+  Module* m = load_eir_from_file(filename);
   // cout << " - - - - - - - - - -" << endl;
+  run(*m);
 }
 
 int main(int argc, char** argv) {

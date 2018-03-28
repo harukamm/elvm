@@ -11,7 +11,11 @@
 # define MOD24(v) v & UINT_MAX
 #endif
 
+#include <string>
 #include <vector>
+
+using std::string;
+using std::vector;
 
 typedef enum {
   A, B, C, D, BP, SP
@@ -35,7 +39,7 @@ typedef struct {
   union {
     Reg reg;
     int imm;
-    std::string* tmp;
+    string* tmp;
   };
 } Value;
 
@@ -53,8 +57,8 @@ typedef struct {
 } Data;
 
 typedef struct {
-  std::vector<Inst> text;
-  std::vector<Data> data;
+  vector<Inst> text;
+  vector<Data> data;
 } Module;
 
 Module* load_eir(FILE* fp);

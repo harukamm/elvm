@@ -69,6 +69,8 @@ void split_basic_block_by_mem();
 
 bool isident(const char c);
 
+void run(const Module& m);
+
 #ifdef __GNUC__
 #if __has_attribute(fallthrough)
 #define FALLTHROUGH __attribute__((fallthrough))

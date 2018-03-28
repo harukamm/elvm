@@ -337,6 +337,8 @@ Value read_value(Reader* r) {
   if (maybe_imm) {
     int i = string_to_int(word);
     i *= minus ? (-1) : 1;
+    i += MEMSZ;
+    i %= MEMSZ;
     result.type = IMM;
     result.imm = i;
   } else if (is_reg(word)) {

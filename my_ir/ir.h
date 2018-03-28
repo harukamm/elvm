@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#define MEMSZ 0x1000000
+
 #define UINT_MAX 16777215
 #define UINT_MAX_STR "16777215"
 #ifdef __eir__

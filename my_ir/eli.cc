@@ -5,8 +5,6 @@
 
 #include <assert.h>
 
-#define MEMSZ 0x1000000
-
 using std::cin;
 
 int mem[MEMSZ];
@@ -134,8 +132,10 @@ void run(const Module& m) {
       break;
     case GETC:
       assert(inst.src.type == REG);
-      cin >> c;
-      regs[inst.src.reg] = c;
+      cin.get(c);
+      regs[inst.src.reg] = c == EOF ? 0 : c;
+      regs[inst.src.reg] += MEMSZ;
+      regs[inst.src.reg] %= MEMSZ;
       break;
     case EXIT:
       return;

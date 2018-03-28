@@ -57,6 +57,7 @@ typedef struct {
 } Data;
 
 typedef struct {
+  int entry;
   vector<Inst> text;
   vector<Data> data;
 } Module;

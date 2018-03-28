@@ -501,11 +501,18 @@ Module* load_eir_impl(Reader* r) {
 
   assert(r->is_end());
 
+  int entry = 0;
+  if (txt_label_ref.find("main") != txt_label_ref.end())
+    entry = txt_label_ref.find("main")->second;
+
+  data_label_ref.insert(std::make_pair("_edata", data.size()));
+
   vector<Data> d;
   dereferece_labels_data(&d, data, data_label_ref);
   dereferece_labels_text(&txt, txt_label_ref, data_label_ref);
 
   Module* m = new Module();
+  m->entry = entry;
   m->text = txt;
   m->data = d;
   return m;

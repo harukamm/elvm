@@ -175,7 +175,7 @@ class Reader {
 
   // Skip any characters until the first occurrence of '\n' or '\r'
   void skip_until_ret() {
-    while(!is_end()) {
+    while (!is_end()) {
       char c = getc();
       if (c == '\n' || c == '\r')
         break;
@@ -188,7 +188,7 @@ class Reader {
     skip_spaces();
     for (int i = 0; i < possible_word.size(); i++) {
       if (is_end() || peek() != possible_word[i]) {
-        //cout << possible_word << " vs( " << i << ")" << peek() << endl;
+        // cout << possible_word << " vs( " << i << ")" << peek() << endl;
         pos = tmp_pos;
         lineno = tmp_lineno;
         return false;
@@ -431,16 +431,16 @@ int read_typevals(vector<TempData>* data, Reader* r) {
   assert(data != nullptr);
   assert(r != nullptr);
   int update = 0;
-  while(!r->is_end()) {
+  while (!r->is_end()) {
     if (r->accept(".string")) {
       const string& str = r->literal();
       for (int i = 0; i < str.size(); i++)
-        data->push_back((TempData) {VAL, .val=str[i]});
+        data->push_back((TempData) {VAL, .val = str[i]});
     } else if (r->accept(".long")) {
       Value val = read_value(r);
       switch (val.type) {
       case IMM:
-        data->push_back((TempData) {VAL, .val=val.imm});
+        data->push_back((TempData) {VAL, .val = val.imm});
         break;
       case LAB:
         data->push_back((TempData) {REFLAB, val.tmp});
@@ -514,7 +514,7 @@ Module* load_eir_impl(Reader* r) {
 void dereferece_labels_text(vector<Inst>* inst,
     const LabelRefMap& txt_label_ref, const LabelRefMap& data_label_ref) {
   assert(inst != nullptr);
-  for(int i = 0; i < inst->size(); i++) {
+  for (int i = 0; i < inst->size(); i++) {
     Inst& in = (*inst)[i];
     switch (in.op) {
     case JMP:
@@ -581,15 +581,15 @@ Module* load_eir_from_file(const char* filename) {
     exit(1);
   }
   Module* m = load_eir_impl(r);
-  dump_module(m);
+  // dump_module(m);
   delete r;
   return m;
 }
 
 void test_file(const char* filename) {
-  cout << " - - - test - " << filename << endl;
+  // cout << " - - - test - " << filename << endl;
   load_eir_from_file(filename);
-  cout << " - - - - - - - - - -" << endl;
+  // cout << " - - - - - - - - - -" << endl;
 }
 
 int main(int argc, char** argv) {
@@ -667,5 +667,6 @@ int main(int argc, char** argv) {
   test_file("../out/swapcase.c.eir");
   test_file("../out/switch_case.c.eir");
   test_file("../out/switch_op.c.eir");
-  test_file("../out/switch_range.c.eir"); 
+  test_file("../out/switch_range.c.eir");
 }
+

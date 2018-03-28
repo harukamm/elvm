@@ -3,7 +3,7 @@
 #include <my_ir/dump_ir.h>
 
 string string_reg(Reg reg) {
-  switch(reg) {
+  switch (reg) {
   case A:
     return "A";
   case B:

@@ -549,10 +549,13 @@ Module* load_eir_impl(Reader* r) {
   LabelRefMap data_label_ref;
   allocate_by_ord(&tmp_data, &data_label_ref, data_by_ord, data_label_ref_by_ord);
 
-  data_label_ref.insert(std::make_pair("_edata", tmp_data.size()));
 
   vector<Data> data;
+  int dsize = static_cast<int>(tmp_data.size());
+  data_label_ref.insert(std::make_pair("_edata", dsize));
   dereferece_labels_data(&data, tmp_data, data_label_ref);
+  data.push_back((Data) { dsize + 1 });
+
   dereferece_labels_text(&txt, txt_label_ref, data_label_ref);
 
   Module* m = new Module();
